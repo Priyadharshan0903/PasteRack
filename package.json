@@ -6,8 +6,9 @@
   "scripts": {
     "start": "electron .",
     "dev": "NODE_ENV=development electron .",
-    "build": "electron-builder --mac",
-    "build:dmg": "electron-builder --mac dmg",
+    "prebuild": "node scripts/generate-dmg-bg.js",
+    "build": "electron-builder --mac && node scripts/adhoc-sign.js",
+    "build:dmg": "electron-builder --mac dmg && node scripts/adhoc-sign.js",
     "build:zip": "electron-builder --mac zip"
   },
   "author": "PasteRack",
@@ -33,15 +34,20 @@
       "hardenedRuntime": false
     },
     "dmg": {
-      "title": "PasteRack",
+      "title": "Install PasteRack",
+      "background": "build/dmg-bg.png",
+      "window": {
+        "width": 540,
+        "height": 380
+      },
       "contents": [
         {
-          "x": 130,
-          "y": 220
+          "x": 140,
+          "y": 200
         },
         {
-          "x": 410,
-          "y": 220,
+          "x": 400,
+          "y": 200,
           "type": "link",
           "path": "/Applications"
         }
@@ -55,7 +61,8 @@
     ],
     "directories": {
       "output": "dist"
-    }
+    },
+    "afterPack": "scripts/adhoc-sign.js"
   },
   "devDependencies": {
     "electron": "^35.0.0",

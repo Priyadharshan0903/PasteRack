@@ -222,7 +222,20 @@ function renderPasswords(passwords) {
         el.innerHTML = `
           <div class="pw-edit-form">
             <input type="text" class="pw-edit-label" value="${escapeHtml(pw.label)}" placeholder="Label" spellcheck="false" />
-            <input type="password" class="pw-edit-value" value="${escapeHtml(currentValue || "")}" placeholder="New password" />
+            <div class="pw-edit-password-wrapper">
+              <input type="password" class="pw-edit-value" value="${escapeHtml(currentValue || "")}" placeholder="New password" />
+              <button class="pw-edit-eye" title="Toggle visibility">
+                <svg class="eye-open" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+                <svg class="eye-closed" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                  <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                  <line x1="1" y1="1" x2="23" y2="23"/>
+                </svg>
+              </button>
+            </div>
             <div class="pw-edit-actions">
               <button class="pw-btn save" title="Save">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
@@ -240,6 +253,22 @@ function renderPasswords(passwords) {
 
         const labelInput = el.querySelector(".pw-edit-label");
         const valueInput = el.querySelector(".pw-edit-value");
+        const eyeBtn = el.querySelector(".pw-edit-eye");
+        const eyeOpen = eyeBtn.querySelector(".eye-open");
+        const eyeClosed = eyeBtn.querySelector(".eye-closed");
+
+        eyeBtn.addEventListener("click", () => {
+          if (valueInput.type === "password") {
+            valueInput.type = "text";
+            eyeOpen.style.display = "none";
+            eyeClosed.style.display = "block";
+          } else {
+            valueInput.type = "password";
+            eyeOpen.style.display = "block";
+            eyeClosed.style.display = "none";
+          }
+          valueInput.focus();
+        });
         labelInput.focus();
 
         el.querySelector(".save").addEventListener("click", async () => {

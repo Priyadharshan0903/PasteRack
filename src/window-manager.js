@@ -23,6 +23,9 @@ class WindowManager {
       skipTaskbar: true,
       alwaysOnTop: true,
       transparent: true,
+      type: "panel",
+      hasShadow: false,
+      visibleOnAllWorkspaces: true,
       vibrancy: "under-window",
       visualEffectState: "active",
       webPreferences: {
@@ -30,6 +33,10 @@ class WindowManager {
         nodeIntegration: false,
         contextIsolation: true,
       },
+    });
+
+    this.window.setVisibleOnAllWorkspaces(true, {
+      visibleOnFullScreen: true,
     });
 
     this.window.loadFile(path.join(__dirname, "..", "renderer", "index.html"));
@@ -63,7 +70,7 @@ class WindowManager {
       this.window.setPosition(x, y);
     }
 
-    this.window.show();
+    this.window.showInactive();
     this.window.focus();
   }
 

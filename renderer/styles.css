@@ -432,6 +432,37 @@ body {
   box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
+.pw-edit-password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.pw-edit-password-wrapper input {
+  padding-right: 36px;
+}
+
+.pw-edit-eye {
+  position: absolute;
+  right: 4px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: var(--radius-xs);
+  transition: all var(--transition);
+}
+
+.pw-edit-eye:hover {
+  color: var(--accent-light);
+  background: var(--bg-hover);
+}
+
 .pw-edit-actions {
   display: flex;
   gap: 4px;

@@ -1,4 +1,7 @@
 const crypto = require("crypto");
+const fs = require("fs");
+const path = require("path");
+const os = require("os");
 
 // AES-256-GCM encryption with PBKDF2 key derivation
 const ALGORITHM = "aes-256-gcm";
@@ -9,14 +12,76 @@ const TAG_LENGTH = 16;
 const PBKDF2_ITERATIONS = 100000;
 const AUTO_LOCK_MS = 5 * 60 * 1000; // Auto-lock after 5 minutes of inactivity
 
+const VAULT_DIR = path.join(os.homedir(), ".pasterack");
+const VAULT_FILE = path.join(VAULT_DIR, "vault.enc");
+
 class PasswordVault {
   constructor() {
     this.entries = [];
     this.derivedKey = null;
-    this.masterHash = null; // SHA-256 hash of master password for verification
+    this.masterHash = null;
     this.salt = null;
     this.locked = true;
     this.autoLockTimer = null;
+
+    // Load vault metadata from disk (salt + hash + encrypted entries)
+    this._loadFromDisk();
+  }
+
+  // ── Disk Persistence ──
+
+  _ensureDir() {
+    if (!fs.existsSync(VAULT_DIR)) {
+      fs.mkdirSync(VAULT_DIR, { mode: 0o700, recursive: true });
+    }
+  }
+
+  _loadFromDisk() {
+    try {
+      if (!fs.existsSync(VAULT_FILE)) return;
+
+      const raw = fs.readFileSync(VAULT_FILE);
+      const data = JSON.parse(raw.toString("utf8"));
+
+      if (data.salt && data.masterHash && Array.isArray(data.entries)) {
+        this.salt = Buffer.from(data.salt, "hex");
+        this.masterHash = data.masterHash;
+        this.entries = data.entries.map((e) => ({
+          id: e.id,
+          label: e.label,
+          encrypted: Buffer.from(e.encrypted, "hex"),
+          createdAt: e.createdAt,
+        }));
+      }
+    } catch (err) {
+      console.error("Failed to load vault:", err.message);
+    }
+  }
+
+  _saveToDisk() {
+    try {
+      this._ensureDir();
+
+      const data = {
+        salt: this.salt.toString("hex"),
+        masterHash: this.masterHash,
+        entries: this.entries.map((e) => ({
+          id: e.id,
+          label: e.label,
+          encrypted: e.encrypted.toString("hex"),
+          createdAt: e.createdAt,
+        })),
+      };
+
+      const tmpFile = VAULT_FILE + ".tmp";
+      fs.writeFileSync(tmpFile, JSON.stringify(data), {
+        mode: 0o600,
+        encoding: "utf8",
+      });
+      fs.renameSync(tmpFile, VAULT_FILE);
+    } catch (err) {
+      console.error("Failed to save vault:", err.message);
+    }
   }
 
   // ── Master Password Setup ──
@@ -48,6 +113,7 @@ class PasswordVault {
 
     this.locked = false;
     this._resetAutoLock();
+    this._saveToDisk();
     return true;
   }
 
@@ -75,7 +141,6 @@ class PasswordVault {
   }
 
   lock() {
-    // Wipe derived key from memory
     if (this.derivedKey) {
       crypto.randomFillSync(this.derivedKey);
       this.derivedKey = null;
@@ -103,7 +168,6 @@ class PasswordVault {
     encrypted = Buffer.concat([encrypted, cipher.final()]);
     const tag = cipher.getAuthTag();
 
-    // Pack: iv + tag + ciphertext
     return Buffer.concat([iv, tag, encrypted]);
   }
 
@@ -145,6 +209,7 @@ class PasswordVault {
 
     this.entries.push(entry);
     this._resetAutoLock();
+    this._saveToDisk();
     return { id: entry.id, label: entry.label, createdAt: entry.createdAt };
   }
 
@@ -179,17 +244,18 @@ class PasswordVault {
     }
 
     this._resetAutoLock();
+    this._saveToDisk();
     return { id: entry.id, label: entry.label, createdAt: entry.createdAt };
   }
 
   delete(id) {
     const index = this.entries.findIndex((e) => e.id === id);
     if (index === -1) return false;
-    // Overwrite encrypted buffer before removing
     if (this.entries[index].encrypted) {
       crypto.randomFillSync(this.entries[index].encrypted);
     }
     this.entries.splice(index, 1);
+    this._saveToDisk();
     return true;
   }
 

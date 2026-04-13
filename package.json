@@ -7,9 +7,9 @@
     "start": "electron .",
     "dev": "NODE_ENV=development electron .",
     "prebuild": "node scripts/generate-dmg-bg.js",
-    "build": "electron-builder --mac",
-    "build:dmg": "electron-builder --mac dmg",
-    "build:zip": "electron-builder --mac zip"
+    "build": "electron-builder --mac --arm64",
+    "build:x64": "electron-builder --mac --x64",
+    "build:all": "electron-builder --mac --arm64 && electron-builder --mac --x64"
   },
   "author": "PasteRack",
   "license": "MIT",
@@ -20,14 +20,8 @@
       "category": "public.app-category.utilities",
       "icon": "build/icon.png",
       "target": [
-        {
-          "target": "dmg",
-          "arch": ["arm64", "x64"]
-        },
-        {
-          "target": "zip",
-          "arch": ["arm64", "x64"]
-        }
+        "dmg",
+        "zip"
       ],
       "darkModeSupport": true,
       "identity": null,

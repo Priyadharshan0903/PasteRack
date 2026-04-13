@@ -1,0 +1,128 @@
+const { app, ipcMain, clipboard } = require("electron");
+const ClipboardStore = require("./src/clipboard-store");
+const ClipboardWatcher = require("./src/clipboard-watcher");
+const PasswordVault = require("./src/password-vault");
+const TrayManager = require("./src/tray-manager");
+const WindowManager = require("./src/window-manager");
+const ShortcutManager = require("./src/shortcut-manager");
+
+// Hide dock icon (menu bar app)
+if (app.dock) app.dock.hide();
+
+let store;
+let watcher;
+let vault;
+let tray;
+let windowManager;
+let shortcuts;
+
+// Timer for auto-clearing password from clipboard
+let passwordClearTimer = null;
+
+app.whenReady().then(() => {
+  // ── Initialize modules ──
+  store = new ClipboardStore();
+  vault = new PasswordVault();
+  windowManager = new WindowManager();
+  shortcuts = new ShortcutManager();
+
+  const win = windowManager.create();
+
+  // ── Tray ──
+  tray = new TrayManager(
+    (bounds) => windowManager.toggle(bounds),
+    () => app.quit()
+  );
+  tray.create();
+
+  // ── Clipboard watcher ──
+  watcher = new ClipboardWatcher(store, (items) => {
+    windowManager.send("clips:updated", items);
+  });
+  watcher.start();
+
+  // ── Global shortcuts ──
+  shortcuts.registerToggle(() => {
+    const bounds = tray.getBounds();
+    windowManager.toggle(bounds);
+  });
+
+  shortcuts.registerPasteShortcuts(
+    (index) => store.getByIndex(index),
+    (item) => {
+      watcher.updateLastText(item.text);
+    }
+  );
+
+  // ── IPC Handlers: Clipboard ──
+  ipcMain.handle("clips:getAll", () => {
+    return store.getAll();
+  });
+
+  ipcMain.handle("clips:search", (_event, query) => {
+    return store.search(query);
+  });
+
+  ipcMain.handle("clips:copy", (_event, id) => {
+    const items = store.getAll();
+    const item = items.find((i) => i.id === id);
+    if (item) {
+      clipboard.writeText(item.text);
+      watcher.updateLastText(item.text);
+    }
+    return !!item;
+  });
+
+  ipcMain.handle("clips:clear", () => {
+    store.clear();
+    return true;
+  });
+
+  // ── IPC Handlers: Passwords ──
+  ipcMain.handle("passwords:getAll", () => {
+    return vault.getAll();
+  });
+
+  ipcMain.handle("passwords:add", (_event, label, value) => {
+    return vault.add(label, value);
+  });
+
+  ipcMain.handle("passwords:reveal", (_event, id) => {
+    return vault.decrypt(id);
+  });
+
+  ipcMain.handle("passwords:copy", (_event, id) => {
+    const value = vault.decrypt(id);
+    if (value) {
+      clipboard.writeText(value);
+      watcher.updateLastText(value);
+
+      // Auto-clear password from clipboard after 30s
+      clearTimeout(passwordClearTimer);
+      passwordClearTimer = setTimeout(() => {
+        if (clipboard.readText() === value) {
+          clipboard.writeText("");
+          watcher.updateLastText("");
+        }
+      }, 30000);
+    }
+    return !!value;
+  });
+
+  ipcMain.handle("passwords:delete", (_event, id) => {
+    return vault.delete(id);
+  });
+});
+
+// ── Cleanup ──
+app.on("will-quit", () => {
+  if (watcher) watcher.stop();
+  if (shortcuts) shortcuts.unregisterAll();
+  if (tray) tray.destroy();
+  clearTimeout(passwordClearTimer);
+});
+
+// Prevent app from quitting when all windows are closed (menu bar app)
+app.on("window-all-closed", (e) => {
+  e.preventDefault();
+});

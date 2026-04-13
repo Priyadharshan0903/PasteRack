@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PasteRack</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <!-- Header -->
+      <div class="header">
+        <span class="logo">PASTERACK</span>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab active" data-tab="history">History</button>
+        <button class="tab" data-tab="passwords">Passwords</button>
+      </div>
+
+      <!-- History Tab -->
+      <div class="tab-content active" id="tab-history">
+        <div class="search-bar">
+          <input
+            type="text"
+            id="search-input"
+            placeholder="Search clips..."
+            spellcheck="false"
+          />
+        </div>
+        <div class="list" id="clips-list">
+          <div class="empty-state" id="clips-empty">
+            <p>No clips yet</p>
+            <p class="hint">Copy something to get started</p>
+          </div>
+        </div>
+        <div class="footer">
+          <button class="btn-clear" id="btn-clear-clips">Clear All</button>
+          <span class="count" id="clips-count">0 items</span>
+        </div>
+      </div>
+
+      <!-- Passwords Tab -->
+      <div class="tab-content" id="tab-passwords">
+        <div class="password-form" id="password-form">
+          <input
+            type="text"
+            id="pw-label"
+            placeholder="Label (e.g. GitHub Token)"
+            spellcheck="false"
+          />
+          <input
+            type="password"
+            id="pw-value"
+            placeholder="Password or secret"
+          />
+          <button class="btn-add" id="btn-add-pw">+ Add</button>
+        </div>
+        <div class="list" id="passwords-list">
+          <div class="empty-state" id="passwords-empty">
+            <p>No passwords stored</p>
+            <p class="hint">Add a password above to get started</p>
+          </div>
+        </div>
+        <div class="footer">
+          <span class="count" id="passwords-count">0 passwords</span>
+        </div>
+      </div>
+    </div>
+    <script src="renderer.js"></script>
+  </body>
+</html>

@@ -73,6 +73,24 @@ app.whenReady().then(() => {
     return !!item;
   });
 
+  ipcMain.handle("clips:pin", (_event, id) => {
+    const result = store.pin(id);
+    if (result) windowManager.send("clips:updated", store.getAll());
+    return result;
+  });
+
+  ipcMain.handle("clips:unpin", (_event, id) => {
+    const result = store.unpin(id);
+    if (result) windowManager.send("clips:updated", store.getAll());
+    return result;
+  });
+
+  ipcMain.handle("clips:delete", (_event, id) => {
+    const result = store.deleteItem(id);
+    if (result) windowManager.send("clips:updated", store.getAll());
+    return result;
+  });
+
   ipcMain.handle("clips:clear", () => {
     store.clear();
     return true;

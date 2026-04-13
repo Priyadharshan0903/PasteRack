@@ -5,6 +5,9 @@ contextBridge.exposeInMainWorld("pasterack", {
   getClips: () => ipcRenderer.invoke("clips:getAll"),
   searchClips: (query) => ipcRenderer.invoke("clips:search", query),
   copyClip: (id) => ipcRenderer.invoke("clips:copy", id),
+  pinClip: (id) => ipcRenderer.invoke("clips:pin", id),
+  unpinClip: (id) => ipcRenderer.invoke("clips:unpin", id),
+  deleteClip: (id) => ipcRenderer.invoke("clips:delete", id),
   clearClips: () => ipcRenderer.invoke("clips:clear"),
 
   // Vault auth

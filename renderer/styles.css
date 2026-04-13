@@ -297,6 +297,88 @@ body {
   padding-top: 3px;
   font-weight: 500;
   flex-shrink: 0;
+  transition: opacity var(--transition);
+}
+
+.clip-item:hover .clip-time {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+}
+
+/* Pin badge */
+.pin-badge {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Pinned clip styling */
+.clip-item.pinned {
+  background: var(--bg-card);
+  border-color: var(--border);
+  border-left: 2px solid var(--accent);
+}
+
+.clip-item.pinned .clip-index {
+  background: var(--accent);
+}
+
+/* Shortcut hint below text */
+.clip-shortcut-hint {
+  font-size: 9px;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-top: 2px;
+  display: block;
+  opacity: 0.6;
+}
+
+/* Clip action buttons */
+.clip-actions {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  flex-shrink: 0;
+  transition: opacity var(--transition);
+}
+
+.clip-item:hover .clip-actions {
+  opacity: 1;
+}
+
+.clip-btn {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition);
+  padding: 0;
+}
+
+.clip-btn:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.clip-btn.del-btn:hover {
+  background: var(--danger);
+  border-color: var(--danger);
+}
+
+.clip-btn.pin-btn:hover {
+  background: var(--accent);
+  border-color: var(--accent);
 }
 
 /* ── Vault Lock Screen ── */

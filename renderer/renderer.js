@@ -90,28 +90,86 @@ function renderClips(items) {
     clipsEmpty.style.display = "none";
     items.forEach((item, index) => {
       const el = document.createElement("div");
-      el.className = "clip-item";
+      el.className = `clip-item${item.pinned ? " pinned" : ""}`;
 
       const shortcutLabel = index < 9
         ? `<span class="clip-index">${index + 1}</span>`
         : `<span class="clip-index no-shortcut">${index + 1}</span>`;
 
+      const shortcutHint = index < 9
+        ? `<span class="clip-shortcut-hint">\u2318\u21e7${index + 1}</span>`
+        : "";
+
+      const pinIcon = item.pinned
+        ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="var(--accent)" stroke="var(--accent)" stroke-width="2"><path d="M12 2l2.09 6.26L21 9.27l-5 4.87L17.18 21 12 17.77 6.82 21 8 14.14l-5-4.87 6.91-1.01z"/></svg>`
+        : `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.09 6.26L21 9.27l-5 4.87L17.18 21 12 17.77 6.82 21 8 14.14l-5-4.87 6.91-1.01z"/></svg>`;
+
       el.innerHTML = `
         ${shortcutLabel}
         <div class="clip-body">
           <div class="clip-text">${escapeHtml(item.text)}</div>
+          ${shortcutHint}
         </div>
-        <span class="clip-time">${timeAgo(item.timestamp)}</span>
+        <span class="clip-time">${item.pinned ? '<span class="pin-badge">pinned</span>' : timeAgo(item.timestamp)}</span>
+        <div class="clip-actions">
+          <button class="clip-btn copy-btn" title="Copy">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <rect x="9" y="9" width="13" height="13" rx="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+          </button>
+          <button class="clip-btn pin-btn" title="${item.pinned ? "Unpin" : "Pin"}">
+            ${pinIcon}
+          </button>
+          <button class="clip-btn del-btn" title="Delete">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
       `;
+
+      // Copy
+      el.querySelector(".copy-btn").addEventListener("click", async (e) => {
+        e.stopPropagation();
+        await window.pasterack.copyClip(item.id);
+        showToast("Copied to clipboard");
+      });
+
+      // Pin / Unpin
+      el.querySelector(".pin-btn").addEventListener("click", async (e) => {
+        e.stopPropagation();
+        if (item.pinned) {
+          await window.pasterack.unpinClip(item.id);
+          showToast("Unpinned");
+        } else {
+          await window.pasterack.pinClip(item.id);
+          showToast("Pinned");
+        }
+      });
+
+      // Delete
+      el.querySelector(".del-btn").addEventListener("click", async (e) => {
+        e.stopPropagation();
+        await window.pasterack.deleteClip(item.id);
+        showToast("Deleted");
+      });
+
+      // Click row to copy
       el.addEventListener("click", async () => {
         await window.pasterack.copyClip(item.id);
         showToast("Copied to clipboard");
       });
+
       clipsList.appendChild(el);
     });
   }
 
-  clipsCount.textContent = `${items.length} item${items.length !== 1 ? "s" : ""}`;
+  const pinnedCount = items.filter((i) => i.pinned).length;
+  const countText = `${items.length} item${items.length !== 1 ? "s" : ""}`;
+  clipsCount.textContent = pinnedCount > 0
+    ? `${countText} \u2022 ${pinnedCount} pinned`
+    : countText;
 }
 
 function escapeHtml(text) {

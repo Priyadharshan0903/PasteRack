@@ -97,7 +97,7 @@ function renderClips(items) {
         : `<span class="clip-index no-shortcut">${index + 1}</span>`;
 
       const shortcutHint = index < 9
-        ? `<span class="clip-shortcut-hint">\u2318\u21e7${index + 1}</span>`
+        ? `<span class="clip-shortcut-hint">\u2318${index + 1}</span>`
         : "";
 
       const pinIcon = item.pinned

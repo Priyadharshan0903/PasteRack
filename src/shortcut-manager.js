@@ -26,7 +26,7 @@ class ShortcutManager {
 
   registerPasteShortcuts(getItemByIndex, onPaste) {
     for (let i = 1; i <= 9; i++) {
-      this.register(`CommandOrControl+Shift+${i}`, () => {
+      this.register(`CommandOrControl+${i}`, () => {
         const item = getItemByIndex(i - 1);
         if (item) {
           clipboard.writeText(item.text);

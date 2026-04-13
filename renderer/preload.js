@@ -13,6 +13,8 @@ contextBridge.exposeInMainWorld("pasterack", {
     ipcRenderer.invoke("passwords:add", label, value),
   revealPassword: (id) => ipcRenderer.invoke("passwords:reveal", id),
   copyPassword: (id) => ipcRenderer.invoke("passwords:copy", id),
+  updatePassword: (id, newLabel, newValue) =>
+    ipcRenderer.invoke("passwords:update", id, newLabel, newValue),
   deletePassword: (id) => ipcRenderer.invoke("passwords:delete", id),
 
   // Events from main

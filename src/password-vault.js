@@ -44,6 +44,29 @@ class PasswordVault {
     }
   }
 
+  update(id, newLabel, newValue) {
+    const entry = this.entries.find((e) => e.id === id);
+    if (!entry) return null;
+
+    if (newLabel && newLabel !== entry.label) {
+      const duplicate = this.entries.find(
+        (e) => e.id !== id && e.label.toLowerCase() === newLabel.toLowerCase()
+      );
+      if (duplicate) return null;
+      entry.label = newLabel;
+    }
+
+    if (newValue) {
+      if (safeStorage.isEncryptionAvailable()) {
+        entry.encrypted = safeStorage.encryptString(newValue);
+      } else {
+        entry.encrypted = Buffer.from(newValue, "utf-8");
+      }
+    }
+
+    return { id: entry.id, label: entry.label, createdAt: entry.createdAt };
+  }
+
   delete(id) {
     const index = this.entries.findIndex((e) => e.id === id);
     if (index === -1) return false;

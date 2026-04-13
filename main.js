@@ -91,6 +91,10 @@ app.whenReady().then(() => {
     return vault.decrypt(id);
   });
 
+  ipcMain.handle("passwords:update", (_event, id, newLabel, newValue) => {
+    return vault.update(id, newLabel, newValue);
+  });
+
   ipcMain.handle("passwords:copy", (_event, id) => {
     const value = vault.decrypt(id);
     if (value) {

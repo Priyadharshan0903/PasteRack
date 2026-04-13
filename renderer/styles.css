@@ -406,6 +406,50 @@ body {
   letter-spacing: 2px;
 }
 
+/* ── Password Edit Form ── */
+.pw-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.pw-edit-form input {
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 12px;
+  outline: none;
+  transition: all var(--transition);
+}
+
+.pw-edit-form input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.pw-edit-actions {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+}
+
+.pw-btn.save:hover {
+  background: var(--success);
+  border-color: var(--success);
+  color: white;
+}
+
+.pw-btn.cancel:hover {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: white;
+}
+
 .pw-actions {
   display: flex;
   gap: 4px;

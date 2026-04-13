@@ -178,6 +178,12 @@ function renderPasswords(passwords) {
               <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
             </svg>
           </button>
+          <button class="pw-btn edit" title="Edit">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+          </button>
           <button class="pw-btn delete" title="Delete">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
               <polyline points="3 6 5 6 21 6"/>
@@ -208,6 +214,63 @@ function renderPasswords(passwords) {
       el.querySelector(".copy").addEventListener("click", async () => {
         await window.pasterack.copyPassword(pw.id);
         showToast("Copied! Auto-clears in 30s");
+      });
+
+      // Edit
+      el.querySelector(".edit").addEventListener("click", async () => {
+        const currentValue = await window.pasterack.revealPassword(pw.id);
+        el.innerHTML = `
+          <div class="pw-edit-form">
+            <input type="text" class="pw-edit-label" value="${escapeHtml(pw.label)}" placeholder="Label" spellcheck="false" />
+            <input type="password" class="pw-edit-value" value="${escapeHtml(currentValue || "")}" placeholder="New password" />
+            <div class="pw-edit-actions">
+              <button class="pw-btn save" title="Save">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              </button>
+              <button class="pw-btn cancel" title="Cancel">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        `;
+
+        const labelInput = el.querySelector(".pw-edit-label");
+        const valueInput = el.querySelector(".pw-edit-value");
+        labelInput.focus();
+
+        el.querySelector(".save").addEventListener("click", async () => {
+          const newLabel = labelInput.value.trim();
+          const newValue = valueInput.value;
+          if (!newLabel) {
+            showToast("Label is required", "error");
+            return;
+          }
+          const result = await window.pasterack.updatePassword(pw.id, newLabel, newValue || null);
+          if (result) {
+            showToast("Password updated");
+            loadPasswords();
+          } else {
+            showToast("Label already exists", "error");
+          }
+        });
+
+        el.querySelector(".cancel").addEventListener("click", () => {
+          loadPasswords();
+        });
+
+        valueInput.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") el.querySelector(".save").click();
+          if (e.key === "Escape") el.querySelector(".cancel").click();
+        });
+
+        labelInput.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") valueInput.focus();
+          if (e.key === "Escape") el.querySelector(".cancel").click();
+        });
       });
 
       // Delete

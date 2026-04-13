@@ -7,8 +7,8 @@
     "start": "electron .",
     "dev": "NODE_ENV=development electron .",
     "prebuild": "node scripts/generate-dmg-bg.js",
-    "build": "electron-builder --mac && node scripts/adhoc-sign.js",
-    "build:dmg": "electron-builder --mac dmg && node scripts/adhoc-sign.js",
+    "build": "electron-builder --mac",
+    "build:dmg": "electron-builder --mac dmg",
     "build:zip": "electron-builder --mac zip"
   },
   "author": "PasteRack",
@@ -22,11 +22,11 @@
       "target": [
         {
           "target": "dmg",
-          "arch": ["universal"]
+          "arch": ["arm64", "x64"]
         },
         {
           "target": "zip",
-          "arch": ["universal"]
+          "arch": ["arm64", "x64"]
         }
       ],
       "darkModeSupport": true,
@@ -61,8 +61,7 @@
     ],
     "directories": {
       "output": "dist"
-    },
-    "afterPack": "scripts/adhoc-sign.js"
+    }
   },
   "devDependencies": {
     "electron": "^35.0.0",

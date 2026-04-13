@@ -37,29 +37,34 @@ tabBtns.forEach((btn) => {
 function timeAgo(timestamp) {
   const diff = Date.now() - timestamp;
   const seconds = Math.floor(diff / 1000);
-  if (seconds < 5) return "now";
-  if (seconds < 60) return `${seconds}s`;
+  if (seconds < 5) return "just now";
+  if (seconds < 60) return `${seconds}s ago`;
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m`;
+  if (minutes < 60) return `${minutes}m ago`;
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h`;
+  if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
-  return `${days}d`;
+  return `${days}d ago`;
 }
 
 // ── Toast ──
 let toastTimer = null;
-function showToast(message) {
+function showToast(message, type = "success") {
   let toast = document.querySelector(".toast");
   if (!toast) {
     toast = document.createElement("div");
     toast.className = "toast";
     document.body.appendChild(toast);
   }
+  toast.className = `toast ${type}`;
   toast.textContent = message;
+
+  // Force reflow for re-trigger animation
+  void toast.offsetWidth;
   toast.classList.add("show");
+
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toast.classList.remove("show"), 1500);
+  toastTimer = setTimeout(() => toast.classList.remove("show"), 1800);
 }
 
 // ── Clipboard History ──
@@ -75,8 +80,13 @@ function renderClips(items) {
     items.forEach((item, index) => {
       const el = document.createElement("div");
       el.className = "clip-item";
+
+      const shortcutLabel = index < 9
+        ? `<span class="clip-index">${index + 1}</span>`
+        : `<span class="clip-index no-shortcut">${index + 1}</span>`;
+
       el.innerHTML = `
-        <span class="clip-index ${index >= 9 ? "no-shortcut" : ""}">${index + 1}</span>
+        ${shortcutLabel}
         <div class="clip-body">
           <div class="clip-text">${escapeHtml(item.text)}</div>
         </div>
@@ -84,7 +94,7 @@ function renderClips(items) {
       `;
       el.addEventListener("click", async () => {
         await window.pasterack.copyClip(item.id);
-        showToast("Copied!");
+        showToast("Copied to clipboard");
       });
       clipsList.appendChild(el);
     });
@@ -119,7 +129,7 @@ searchInput.addEventListener("input", () => {
 btnClearClips.addEventListener("click", async () => {
   await window.pasterack.clearClips();
   renderClips([]);
-  showToast("Cleared");
+  showToast("History cleared");
 });
 
 // Listen for updates from main process
@@ -146,15 +156,35 @@ function renderPasswords(passwords) {
     passwords.forEach((pw) => {
       const el = document.createElement("div");
       el.className = "pw-item";
+
+      const initial = pw.label.charAt(0).toUpperCase();
+
       el.innerHTML = `
+        <div class="pw-icon">${escapeHtml(initial)}</div>
         <div class="pw-info">
           <div class="pw-label">${escapeHtml(pw.label)}</div>
-          <div class="pw-masked" data-id="${pw.id}">••••••••</div>
+          <div class="pw-masked" data-id="${pw.id}">\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022</div>
         </div>
         <div class="pw-actions">
-          <button class="pw-btn reveal" title="Reveal" data-id="${pw.id}">&#x1f441;</button>
-          <button class="pw-btn copy" title="Copy" data-id="${pw.id}">&#x2398;</button>
-          <button class="pw-btn delete" title="Delete" data-id="${pw.id}">&#x2715;</button>
+          <button class="pw-btn reveal" title="Reveal">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+          <button class="pw-btn copy" title="Copy">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <rect x="9" y="9" width="13" height="13" rx="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+          </button>
+          <button class="pw-btn delete" title="Delete">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+              <path d="M10 11v6"/><path d="M14 11v6"/>
+            </svg>
+          </button>
         </div>
       `;
 
@@ -164,8 +194,12 @@ function renderPasswords(passwords) {
         const value = await window.pasterack.revealPassword(pw.id);
         if (value) {
           masked.textContent = value;
+          masked.style.color = "var(--accent-light)";
+          masked.style.letterSpacing = "0";
           setTimeout(() => {
-            masked.textContent = "••••••••";
+            masked.textContent = "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022";
+            masked.style.color = "";
+            masked.style.letterSpacing = "";
           }, 5000);
         }
       });
@@ -180,14 +214,14 @@ function renderPasswords(passwords) {
       el.querySelector(".delete").addEventListener("click", async () => {
         await window.pasterack.deletePassword(pw.id);
         loadPasswords();
-        showToast("Deleted");
+        showToast("Password deleted");
       });
 
       passwordsList.appendChild(el);
     });
   }
 
-  passwordsCount.textContent = `${passwords.length} password${passwords.length !== 1 ? "s" : ""}`;
+  passwordsCount.textContent = `${passwords.length} password${passwords.length !== 1 ? "s" : ""} \u2022 encrypted`;
 }
 
 // Add password
@@ -196,7 +230,7 @@ btnAddPw.addEventListener("click", async () => {
   const value = pwValue.value;
 
   if (!label || !value) {
-    showToast("Fill in both fields");
+    showToast("Fill in both fields", "error");
     return;
   }
 
@@ -205,15 +239,22 @@ btnAddPw.addEventListener("click", async () => {
     pwLabel.value = "";
     pwValue.value = "";
     loadPasswords();
-    showToast("Password saved");
+    showToast("Saved to vault");
   } else {
-    showToast("Label already exists");
+    showToast("Label already exists", "error");
   }
 });
 
 // Enter key in password form
 pwValue.addEventListener("keydown", (e) => {
   if (e.key === "Enter") btnAddPw.click();
+});
+
+// Escape key closes window
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    window.close();
+  }
 });
 
 // ── Init ──

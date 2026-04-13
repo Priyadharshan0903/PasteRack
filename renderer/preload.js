@@ -7,6 +7,14 @@ contextBridge.exposeInMainWorld("pasterack", {
   copyClip: (id) => ipcRenderer.invoke("clips:copy", id),
   clearClips: () => ipcRenderer.invoke("clips:clear"),
 
+  // Vault auth
+  vaultStatus: () => ipcRenderer.invoke("vault:status"),
+  vaultSetup: (masterPassword) =>
+    ipcRenderer.invoke("vault:setup", masterPassword),
+  vaultUnlock: (masterPassword) =>
+    ipcRenderer.invoke("vault:unlock", masterPassword),
+  vaultLock: () => ipcRenderer.invoke("vault:lock"),
+
   // Password vault
   getPasswords: () => ipcRenderer.invoke("passwords:getAll"),
   addPassword: (label, value) =>

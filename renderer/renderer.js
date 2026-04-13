@@ -17,6 +17,17 @@ const pwLabel = document.getElementById("pw-label");
 const pwValue = document.getElementById("pw-value");
 const btnAddPw = document.getElementById("btn-add-pw");
 
+// Vault lock elements
+const vaultLock = document.getElementById("vault-lock");
+const vaultContent = document.getElementById("vault-content");
+const vaultLockTitle = document.getElementById("vault-lock-title");
+const vaultLockHint = document.getElementById("vault-lock-hint");
+const masterPwInput = document.getElementById("master-pw-input");
+const masterPwConfirm = document.getElementById("master-pw-confirm");
+const btnVaultSubmit = document.getElementById("btn-vault-submit");
+const vaultLockError = document.getElementById("vault-lock-error");
+const btnLockVault = document.getElementById("btn-lock-vault");
+
 // ── Tabs ──
 tabBtns.forEach((btn) => {
   btn.addEventListener("click", () => {
@@ -29,7 +40,7 @@ tabBtns.forEach((btn) => {
     tabContents.forEach((c) => c.classList.remove("active"));
     document.getElementById(`tab-${tab}`).classList.add("active");
 
-    if (tab === "passwords") loadPasswords();
+    if (tab === "passwords") checkVaultStatus();
   });
 });
 
@@ -137,6 +148,108 @@ window.pasterack.onClipsUpdated((items) => {
   if (!searchInput.value.trim()) {
     renderClips(items);
   }
+});
+
+// ── Vault Auth ──
+async function checkVaultStatus() {
+  const status = await window.pasterack.vaultStatus();
+
+  if (!status.isSetup) {
+    // First time — show setup screen
+    showVaultLock("setup");
+  } else if (status.isLocked) {
+    // Locked — show unlock screen
+    showVaultLock("unlock");
+  } else {
+    // Unlocked — show vault content
+    showVaultUnlocked();
+  }
+}
+
+function showVaultLock(mode) {
+  vaultLock.style.display = "flex";
+  vaultContent.style.display = "none";
+  vaultLockError.textContent = "";
+  masterPwInput.value = "";
+  masterPwConfirm.value = "";
+
+  if (mode === "setup") {
+    vaultLockTitle.textContent = "Create Master Password";
+    vaultLockHint.textContent = "This encrypts all your passwords with AES-256";
+    masterPwConfirm.style.display = "block";
+    btnVaultSubmit.textContent = "Create Vault";
+  } else {
+    vaultLockTitle.textContent = "Unlock Vault";
+    vaultLockHint.textContent = "Enter your master password to access passwords";
+    masterPwConfirm.style.display = "none";
+    btnVaultSubmit.textContent = "Unlock";
+  }
+
+  masterPwInput.focus();
+}
+
+function showVaultUnlocked() {
+  vaultLock.style.display = "none";
+  vaultContent.style.display = "flex";
+  loadPasswords();
+}
+
+btnVaultSubmit.addEventListener("click", async () => {
+  const status = await window.pasterack.vaultStatus();
+  const password = masterPwInput.value;
+
+  if (!status.isSetup) {
+    // Setup mode
+    const confirm = masterPwConfirm.value;
+    if (password.length < 4) {
+      vaultLockError.textContent = "Password must be at least 4 characters";
+      return;
+    }
+    if (password !== confirm) {
+      vaultLockError.textContent = "Passwords don't match";
+      return;
+    }
+    const success = await window.pasterack.vaultSetup(password);
+    if (success) {
+      showToast("Vault created");
+      showVaultUnlocked();
+    }
+  } else {
+    // Unlock mode
+    if (!password) {
+      vaultLockError.textContent = "Enter your master password";
+      return;
+    }
+    const success = await window.pasterack.vaultUnlock(password);
+    if (success) {
+      showToast("Vault unlocked");
+      showVaultUnlocked();
+    } else {
+      vaultLockError.textContent = "Wrong password";
+      masterPwInput.value = "";
+      masterPwInput.focus();
+    }
+  }
+});
+
+masterPwInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    if (masterPwConfirm.style.display !== "none") {
+      masterPwConfirm.focus();
+    } else {
+      btnVaultSubmit.click();
+    }
+  }
+});
+
+masterPwConfirm.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") btnVaultSubmit.click();
+});
+
+btnLockVault.addEventListener("click", async () => {
+  await window.pasterack.vaultLock();
+  showVaultLock("unlock");
+  showToast("Vault locked");
 });
 
 // ── Password Vault ──

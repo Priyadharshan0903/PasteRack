@@ -299,6 +299,120 @@ body {
   flex-shrink: 0;
 }
 
+/* ── Vault Lock Screen ── */
+.vault-lock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 24px;
+  flex: 1;
+}
+
+.vault-lock-icon {
+  color: var(--accent);
+  margin-bottom: 16px;
+  opacity: 0.8;
+}
+
+.vault-lock-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.vault-lock-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.vault-lock-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.vault-lock-form input {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 12px;
+  outline: none;
+  transition: all var(--transition);
+  text-align: center;
+}
+
+.vault-lock-form input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.vault-lock-form input::placeholder {
+  color: var(--text-muted);
+}
+
+.vault-lock-error {
+  font-size: 11px;
+  color: var(--danger);
+  margin-top: 8px;
+  min-height: 16px;
+}
+
+/* ── Vault Header (unlocked) ── */
+.vault-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+}
+
+.vault-status {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--success);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  letter-spacing: 0.5px;
+}
+
+.btn-lock {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.btn-lock:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+.vault-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
 /* ── Password Form ── */
 .password-form {
   padding: 10px 14px;

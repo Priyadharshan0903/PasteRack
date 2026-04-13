@@ -78,6 +78,24 @@ app.whenReady().then(() => {
     return true;
   });
 
+  // ── IPC Handlers: Vault Auth ──
+  ipcMain.handle("vault:status", () => {
+    return { isSetup: vault.isSetup(), isLocked: vault.isLocked() };
+  });
+
+  ipcMain.handle("vault:setup", (_event, masterPassword) => {
+    return vault.setupMaster(masterPassword);
+  });
+
+  ipcMain.handle("vault:unlock", (_event, masterPassword) => {
+    return vault.unlock(masterPassword);
+  });
+
+  ipcMain.handle("vault:lock", () => {
+    vault.lock();
+    return true;
+  });
+
   // ── IPC Handlers: Passwords ──
   ipcMain.handle("passwords:getAll", () => {
     return vault.getAll();
@@ -122,6 +140,7 @@ app.whenReady().then(() => {
 app.on("will-quit", () => {
   if (watcher) watcher.stop();
   if (shortcuts) shortcuts.unregisterAll();
+  if (vault) vault.destroy();
   if (tray) tray.destroy();
   clearTimeout(passwordClearTimer);
 });

@@ -41,6 +41,10 @@ class WindowManager {
 
     this.window.loadFile(path.join(__dirname, "..", "renderer", "index.html"));
 
+    this.window.on("closed", () => {
+      this.window = null;
+    });
+
     // Hide when focus is lost
     this.window.on("blur", () => {
       this.hide();
@@ -50,7 +54,9 @@ class WindowManager {
   }
 
   toggle(trayBounds) {
-    if (!this.window) return;
+    if (!this.window || this.window.isDestroyed()) {
+      this.create();
+    }
 
     if (this.window.isVisible()) {
       this.hide();
@@ -60,7 +66,7 @@ class WindowManager {
   }
 
   show(trayBounds) {
-    if (!this.window) return;
+    if (!this.window || this.window.isDestroyed()) return;
 
     if (trayBounds) {
       const x = Math.round(
@@ -75,23 +81,23 @@ class WindowManager {
   }
 
   hide() {
-    if (this.window && this.window.isVisible()) {
+    if (this.window && !this.window.isDestroyed() && this.window.isVisible()) {
       this.window.hide();
     }
   }
 
   isVisible() {
-    return this.window ? this.window.isVisible() : false;
+    return this.window && !this.window.isDestroyed() ? this.window.isVisible() : false;
   }
 
   send(channel, data) {
-    if (this.window && this.window.webContents) {
+    if (this.window && !this.window.isDestroyed() && this.window.webContents) {
       this.window.webContents.send(channel, data);
     }
   }
 
   destroy() {
-    if (this.window) {
+    if (this.window && !this.window.isDestroyed()) {
       this.window.destroy();
       this.window = null;
     }

@@ -336,6 +336,42 @@ body {
   opacity: 0.6;
 }
 
+/* Image clip styling */
+.clip-item.image {
+  min-height: 80px;
+}
+
+.clip-image-wrapper {
+  margin-top: 4px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+}
+
+.clip-image-filename {
+  font-size: 10px;
+  color: var(--text-secondary);
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.clip-img {
+  max-width: 100%;
+  max-height: 120px;
+  object-fit: contain;
+  display: block;
+  padding: 8px;
+}
+
 /* Clip action buttons */
 .clip-actions {
   display: flex;

@@ -5,26 +5,34 @@ class ClipboardStore {
     this.items = [];
   }
 
-  add(text) {
-    if (!text || !text.trim()) return null;
+  add(content, type = "text", metadata = {}) {
+    if (!content) return null;
+    if (type === "text" && !content.trim()) return null;
 
-    // Deduplicate: don't add if same as most recent unpinned
+    // Deduplicate: don't add if same as most recent unpinned of same type
     const topUnpinned = this.items.find((i) => !i.pinned);
-    if (topUnpinned && topUnpinned.text === text) {
+    if (topUnpinned && topUnpinned.type === type && topUnpinned.content === content) {
       return null;
     }
 
     // Remove duplicate if it exists elsewhere (but not pinned ones)
     this.items = this.items.filter(
-      (item) => item.pinned || item.text !== text
+      (item) => item.pinned || item.content !== content || item.type !== type
     );
 
     const entry = {
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-      text,
+      content,
+      type,
+      metadata,
       timestamp: Date.now(),
       pinned: false,
     };
+
+    // For images, we can't show full data URL in search, so we'll store a snippet or just 'Image'
+    if (type === "text") {
+      entry.text = content; // Keep text property for backward compatibility in some logic
+    }
 
     // Insert after pinned items
     const firstUnpinnedIdx = this.items.findIndex((i) => !i.pinned);
@@ -89,9 +97,10 @@ class ClipboardStore {
   search(query) {
     if (!query) return this.items;
     const lower = query.toLowerCase();
-    return this.items.filter((item) =>
-      item.text.toLowerCase().includes(lower)
-    );
+    return this.items.filter((item) => {
+      if (item.type !== "text") return false;
+      return item.content.toLowerCase().includes(lower);
+    });
   }
 
   clear() {

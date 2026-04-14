@@ -1,4 +1,4 @@
-const { app, ipcMain, clipboard } = require("electron");
+const { app, ipcMain, clipboard, nativeImage } = require("electron");
 const ClipboardStore = require("./src/clipboard-store");
 const ClipboardWatcher = require("./src/clipboard-watcher");
 const PasswordVault = require("./src/password-vault");
@@ -50,7 +50,11 @@ app.whenReady().then(() => {
   shortcuts.registerPasteShortcuts(
     (index) => store.getByIndex(index),
     (item) => {
-      watcher.updateLastText(item.text);
+      if (item.type === "image") {
+        watcher.updateLastImage(item.content);
+      } else {
+        watcher.updateLastText(item.text);
+      }
     }
   );
 
@@ -67,8 +71,14 @@ app.whenReady().then(() => {
     const items = store.getAll();
     const item = items.find((i) => i.id === id);
     if (item) {
-      clipboard.writeText(item.text);
-      watcher.updateLastText(item.text);
+      if (item.type === "image") {
+        const img = nativeImage.createFromDataURL(item.content);
+        clipboard.writeImage(img);
+        watcher.updateLastImage(item.content);
+      } else {
+        clipboard.writeText(item.text);
+        watcher.updateLastText(item.text);
+      }
     }
     return !!item;
   });
@@ -151,6 +161,10 @@ app.whenReady().then(() => {
 
   ipcMain.handle("passwords:delete", (_event, id) => {
     return vault.delete(id);
+  });
+
+  ipcMain.on("window:hide", () => {
+    windowManager.hide();
   });
 });
 

@@ -28,6 +28,8 @@ contextBridge.exposeInMainWorld("pasterack", {
     ipcRenderer.invoke("passwords:update", id, newLabel, newValue),
   deletePassword: (id) => ipcRenderer.invoke("passwords:delete", id),
 
+  hideWindow: () => ipcRenderer.send("window:hide"),
+
   // Events from main
   onClipsUpdated: (callback) => {
     ipcRenderer.on("clips:updated", (_event, clips) => callback(clips));

@@ -90,7 +90,7 @@ function renderClips(items) {
     clipsEmpty.style.display = "none";
     items.forEach((item, index) => {
       const el = document.createElement("div");
-      el.className = `clip-item${item.pinned ? " pinned" : ""}`;
+      el.className = `clip-item${item.pinned ? " pinned" : ""}${item.type === "image" ? " image" : ""}`;
 
       const shortcutLabel = index < 9
         ? `<span class="clip-index">${index + 1}</span>`
@@ -104,10 +104,17 @@ function renderClips(items) {
         ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="var(--accent)" stroke="var(--accent)" stroke-width="2"><path d="M12 2l2.09 6.26L21 9.27l-5 4.87L17.18 21 12 17.77 6.82 21 8 14.14l-5-4.87 6.91-1.01z"/></svg>`
         : `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.09 6.26L21 9.27l-5 4.87L17.18 21 12 17.77 6.82 21 8 14.14l-5-4.87 6.91-1.01z"/></svg>`;
 
+      const contentHtml = item.type === "image"
+        ? `<div class="clip-image-wrapper">
+             ${item.metadata && item.metadata.filename ? `<div class="clip-image-filename">${escapeHtml(item.metadata.filename)}</div>` : ""}
+             <img src="${item.content}" class="clip-img" />
+           </div>`
+        : `<div class="clip-text">${escapeHtml(item.content)}</div>`;
+
       el.innerHTML = `
         ${shortcutLabel}
         <div class="clip-body">
-          <div class="clip-text">${escapeHtml(item.text)}</div>
+          ${contentHtml}
           ${shortcutHint}
         </div>
         <span class="clip-time">${item.pinned ? '<span class="pin-badge">pinned</span>' : timeAgo(item.timestamp)}</span>
@@ -513,10 +520,10 @@ pwValue.addEventListener("keydown", (e) => {
   if (e.key === "Enter") btnAddPw.click();
 });
 
-// Escape key closes window
+// Escape key closes (hides) window
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
-    window.close();
+    window.pasterack.hideWindow();
   }
 });
 
